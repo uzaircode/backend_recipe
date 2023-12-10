@@ -17,7 +17,7 @@ use App\Http\Controllers\Api\UserController;
 
 Route::group(['namespace' => 'Api'], function () {
   Route::post('/login', 'UserController@createUser');
-  Route::group(['middleware'=> ['auth:sanctum']], function () {
+  Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::any('/ingredient_wiki', 'IngredientWikiController@ingredientWiki');
   });
 });

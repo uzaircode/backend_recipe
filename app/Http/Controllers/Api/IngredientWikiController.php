@@ -11,11 +11,10 @@ class IngredientWikiController extends Controller
     {
         $result = IngredientWiki::select('id', 'name', 'thumbnail', 'description', 'seasonality', 'storage', 'cooking_tips', 'health_benefits')->get();
 
-        return response() -> json([
+        return response()->json([
             'code' => 200,
             'msg' => 'success',
             'data' => $result
         ], 200);
     }
-
 }

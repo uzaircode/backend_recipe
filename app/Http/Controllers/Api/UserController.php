@@ -22,17 +22,19 @@ class UserController extends Controller
 
         try {
             //Validated
-            $validateUser = Validator::make($request->all(),
-            [
-                'avatar' => 'required',
-                'type' => 'required',
-                'open_id' => 'required', //Coming from Google Account token (uid)
-                'name' => 'required',
-                'email' => 'required',
-                // 'password' => 'required|min:6',
-            ]);
+            $validateUser = Validator::make(
+                $request->all(),
+                [
+                    'avatar' => 'required',
+                    'type' => 'required',
+                    'open_id' => 'required', //Coming from Google Account token (uid)
+                    'name' => 'required',
+                    'email' => 'required',
+                    // 'password' => 'required|min:6',
+                ]
+            );
 
-            if($validateUser->fails()){
+            if ($validateUser->fails()) {
                 return response()->json([
                     'status' => false,
                     'message' => 'validation error',
@@ -49,18 +51,18 @@ class UserController extends Controller
             $map['open_id'] = $validated['open_id'];
 
             //Check if user already exists, return the first column
-            $user = User::where($map) -> first();
+            $user = User::where($map)->first();
 
             //If user does not exist, create a new user
-            if(empty($user -> id)) {
-                $validated["token"] = md5(uniqid().rand(10000, 99999));
+            if (empty($user->id)) {
+                $validated["token"] = md5(uniqid() . rand(10000, 99999));
                 $validated["created_at"] = Carbon::now();
 
                 $userID = User::insertGetId($validated);
-                $userInfo = User::where('id', '='. $userID) -> first();
+                $userInfo = User::where('id', '=' . $userID)->first();
 
-                $accessToken = $userInfo -> createToken(uniqid()) -> plainTextToken;
-                $userInfo-> access_token = $accessToken;
+                $accessToken = $userInfo->createToken(uniqid())->plainTextToken;
+                $userInfo->access_token = $accessToken;
                 User::where('id', '=', $userID)->update(['access_token' => $accessToken]);
 
                 return response()->json([
@@ -70,8 +72,8 @@ class UserController extends Controller
                 ], 200);
             }
 
-            $accessToken = $user -> createToken(uniqid()) -> plainTextToken;
-            $user-> access_token = $accessToken;
+            $accessToken = $user->createToken(uniqid())->plainTextToken;
+            $user->access_token = $accessToken;
             User::where('open_id', '=', $validated['open_id'])->update(['access_token' => $accessToken]);
 
             return response()->json([
@@ -79,7 +81,6 @@ class UserController extends Controller
                 'msg' => 'User Created Successfully',
                 'data' => $user,
             ], 200);
-
         } catch (\Throwable $th) {
             return response()->json([
                 'status' => false,
@@ -96,13 +97,15 @@ class UserController extends Controller
     public function loginUser(Request $request)
     {
         try {
-            $validateUser = Validator::make($request->all(),
-            [
-                'email' => 'required|email',
-                'password' => 'required'
-            ]);
+            $validateUser = Validator::make(
+                $request->all(),
+                [
+                    'email' => 'required|email',
+                    'password' => 'required'
+                ]
+            );
 
-            if($validateUser->fails()){
+            if ($validateUser->fails()) {
                 return response()->json([
                     'status' => false,
                     'message' => 'validation error',
@@ -110,7 +113,7 @@ class UserController extends Controller
                 ], 401);
             }
 
-            if(!Auth::attempt($request->only(['email', 'password']))){
+            if (!Auth::attempt($request->only(['email', 'password']))) {
                 return response()->json([
                     'status' => false,
                     'message' => 'Email & Password does not match with our record.',
@@ -124,7 +127,6 @@ class UserController extends Controller
                 'message' => 'User Logged In Successfully',
                 'token' => $user->createToken("API TOKEN")->plainTextToken
             ], 200);
-
         } catch (\Throwable $th) {
             return response()->json([
                 'status' => false,
