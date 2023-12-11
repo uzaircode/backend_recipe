@@ -19,5 +19,9 @@ Route::group(['namespace' => 'Api'], function () {
   Route::post('/login', 'UserController@createUser');
   Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::any('/ingredient_wiki', 'IngredientWikiController@ingredientWiki');
+    Route::any('/recipeList', 'RecipeController@recipeList');
+    Route::any('/recipeDetail', 'RecipeController@recipeDetail');
+    Route::delete('/recipeDelete', 'RecipeController@deleteRecipe');
+    Route::any('/recipe', 'RecipeController@addRecipe');
   });
 });

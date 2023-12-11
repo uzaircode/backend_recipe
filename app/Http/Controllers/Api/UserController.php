@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
@@ -72,13 +71,14 @@ class UserController extends Controller
                 ], 200);
             }
 
+            //user previously has logged in
             $accessToken = $user->createToken(uniqid())->plainTextToken;
             $user->access_token = $accessToken;
             User::where('open_id', '=', $validated['open_id'])->update(['access_token' => $accessToken]);
 
             return response()->json([
                 'code' => 200,
-                'msg' => 'User Created Successfully',
+                'msg' => 'User Logged Successfully',
                 'data' => $user,
             ], 200);
         } catch (\Throwable $th) {
