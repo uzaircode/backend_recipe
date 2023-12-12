@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
+//add carbon later!!!!!
 
 class RecipeController extends Controller
 {
@@ -58,7 +59,7 @@ class RecipeController extends Controller
         } catch (\Throwable $th) {
             return response()->json([
                 'status' => false,
-                'message' => 'Error adding recipe',
+                'message' => 'the column does not exist or you have a syntax error',
                 'errors' => $th->getMessage()
             ], 500); // Use the appropriate status code for server errors (500 Internal Server Error)
         }
@@ -66,112 +67,137 @@ class RecipeController extends Controller
 
     public function recipeDetail(Request $request)
     {
-        $user = $request->user();
+        try {
+            $user = $request->user();
 
-        if (!$user) {
+            if (!$user) {
+                return response()->json([
+                    'code' => 401,
+                    'msg' => 'Unauthorized',
+                    'data' => []
+                ], 401);
+            }
+
+            $userToken = $user->token;
+
+            $validatedData = $request->validate([
+                'id' => 'required|numeric' // Validation rules for 'id'
+            ]);
+
+            $recipe = Recipe::where('user_token', $userToken)
+                ->where('id', $validatedData['id'])
+                ->first();
+
+            $recipe = Recipe::where('user_token', $userToken)->where('id', $validatedData['id'])->first();
+
+            if (!$recipe) {
+                return response()->json([
+                    'code' => 404,
+                    'msg' => 'Recipe Not Found',
+                    'data' => []
+                ], 404);
+            }
+
             return response()->json([
-                'code' => 401,
-                'msg' => 'Unauthorized',
-                'data' => []
-            ], 401);
-        }
-
-        $userToken = $user->token;
-
-        $validatedData = $request->validate([
-            'id' => 'required|numeric' // Validation rules for 'id'
-        ]);
-
-        $recipe = Recipe::where('user_token', $userToken)
-            ->where('id', $validatedData['id'])
-            ->first();
-
-        $recipe = Recipe::where('user_token', $userToken)->where('id', $validatedData['id'])->first();
-
-        if (!$recipe) {
+                'code' => 200,
+                'msg' => 'Recipe Detail Successfully',
+                'data' => $recipe
+            ], 200);
+        } catch (\Throwable $throw) {
             return response()->json([
-                'code' => 404,
-                'msg' => 'Recipe Not Found',
-                'data' => []
-            ], 404);
+                'code' => 500,
+                'message' => 'the column does not exist or you have a syntax error',
+                'data' => $throw->getMessage(),
+            ], 500);
         }
-
-        return response()->json([
-            'code' => 200,
-            'msg' => 'Recipe Detail Successfully',
-            'data' => $recipe
-        ], 200);
     }
 
     public function recipeList(Request $request)
     {
-        $user = $request->user();
+        try {
+            $user = $request->user();
 
-        if (!$user) {
+            if (!$user) {
+                return response()->json([
+                    'code' => 401,
+                    'msg' => 'Unauthorized',
+                    'data' => []
+                ], 401);
+            }
+
+            $userToken = $user->token;
+
+            // $result = Recipe::where('user_token', $userToken)->get();
+            $result = Recipe::where('user_token', $userToken)->select('id', 'title', 'thumbnail')->get();
+
             return response()->json([
-                'code' => 401,
-                'msg' => 'Unauthorized',
-                'data' => []
-            ], 401);
+                'code' => 200,
+                'msg' => 'Recipe List Successfully',
+                'data' => $result
+            ], 200);
+        } catch (\Throwable $throw) {
+            return response()->json([
+                'code' => 500,
+                'message' => 'the column does not exist or you have a syntax error',
+                'data' => $throw->getMessage(),
+            ], 500);
         }
-
-        $userToken = $user->token;
-
-        $result = Recipe::where('user_token', $userToken)->get();
-
-        return response()->json([
-            'code' => 200,
-            'msg' => 'Recipe List Successfully',
-            'data' => $result
-        ], 200);
     }
 
     public function recipeDelete(Request $request)
     {
-        $user = $request->user();
+        try {
+            $user = $request->user();
 
-        if (!$user) {
-            return response()->json([
-                'code' => 401,
-                'msg' => 'Unauthorized',
-                'data' => []
-            ], 401);
-        }
+            if (!$user) {
+                return response()->json([
+                    'code' => 401,
+                    'msg' => 'Unauthorized',
+                    'data' => []
+                ], 401);
+            }
 
-        $userToken = $user->token;
+            $userToken = $user->token;
 
-        $validatedData = $request->validate([
-            'id' => 'required|numeric' // Validation rules for 'id'
-        ]);
+            $validatedData = $request->validate([
+                'id' => 'required|numeric' // Validation rules for 'id'
+            ]);
 
-        $recipe = Recipe::where('user_token', $userToken)
-            ->where('id', $validatedData['id'])
-            ->first();
+            $recipe = Recipe::where('user_token', $userToken)
+                ->where('id', $validatedData['id'])
+                ->first();
 
-        $recipe = Recipe::where('user_token', $userToken)->where('id', $validatedData['id'])->first();
+            $recipe = Recipe::where('user_token', $userToken)->where('id', $validatedData['id'])->first();
 
-        if (!$recipe) {
-            return response()->json([
-                'code' => 404,
-                'msg' => 'Recipe Not Found',
-                'data' => []
-            ], 404);
-        }
+            if (!$recipe) {
+                return response()->json([
+                    'code' => 404,
+                    'msg' => 'Recipe Not Found',
+                    'data' => []
+                ], 404);
+            }
 
-        $deleted = $recipe->delete();
+            $deleted = $recipe->delete();
 
-        if ($deleted) {
-            return response()->json([
-                'code' => 200,
-                'msg' => 'Recipe Deleted Successfully',
-                'data' => []
-            ], 200);
-        } else {
+            if ($deleted) {
+                return response()->json([
+                    'code' => 200,
+                    'msg' => 'Recipe Deleted Successfully',
+                    'data' => []
+                ], 200);
+            } else {
+                return response()->json([
+                    'code' => 500,
+                    'msg' => 'Failed to delete recipe',
+                    'data' => []
+                ], 500);
+            }
+        } catch (\Throwable $throw) {
             return response()->json([
                 'code' => 500,
-                'msg' => 'Failed to delete recipe',
-                'data' => []
-            ], 500);
+                'message' => 'the column does not exist or you have a syntax error',
+                'data' => $throw->getMessage(),
+            ]);
         }
     }
 }
